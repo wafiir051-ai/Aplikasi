@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neo Tetris Cyberpunk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00fff2;
+            --secondary: #ff00de;
+            --bg-dark: #050510;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+            background-color: var(--bg-dark);
+            color: #fff;
+            touch-action: none; 
+            height: 100dvh; 
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Latar Belakang Animasi Cyberpunk */
+        .bg-cyberpunk {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000000 100%);
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 222, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: top;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(-50px); }
+        }
+
+        /* Container Game Responsif */
+        .game-wrapper {
+            position: relative;
+            height: 100%; 
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            min-height: 0; /* Penting untuk flexbox */
+        }
+
+        canvas {
+            image-rendering: pixelated; 
+            box-shadow: 0 0 40px rgba(0, 255, 242, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.9);
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* Tombol Kontrol Modern */
+        .btn-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.1s;
+            width: 100%;
+            height: 100%; 
+            min-height: 64px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-control:active {
+            background: rgba(0, 255, 242, 0.3);
+            transform: scale(0.92);
+            box-shadow: 0 0 20px var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-rotate { 
+            color: var(--secondary); 
+            border-color: rgba(255, 0, 222, 0.3); 
+        }
+
+        .layout-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px;
+            gap: 15px;
+            max-height: 100dvh;
+        }
+
+        /* Mode Landscape untuk HP */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .layout-container { flex-direction: row; align-items: center; }
+            .controls-area { width: 300px; height: 100%; justify-content: center; }
+            .header-area { position: absolute; top: 20px; left: 20px; z-index: 50; width: auto; }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-cyberpunk"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="layout-container">
+        <!-- Area Header -->
+        <div class="header-area flex justify-between items-center w-full max-w-2xl mx-auto shrink-0 z-20">
+            <div>
+                <h1 class="text-2xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">NEO-TETRIS</h1>
+                <p class="text-[8px] text-cyan-500/70 tracking-[0.5em] uppercase">V 4.0 Neural Link</p>
+            </div>
+            <div class="glass-panel px-5 py-2 rounded-xl text-right">
+                <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Score</p>
+                <p id="score" class="text-2xl font-bold text-white leading-none">0</p>
+            </div>
+        </div>
+
+        <!-- Area Canvas Game -->
+        <div class="game-wrapper flex-1 min-h-0">
+            <canvas id="tetris" width="240" height="400"></canvas>
+            
+            <!-- Layar Overlay -->
+            <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl z-30 transition-all rounded-lg border border-white/10">
+                <h2 id="overlay-title" class="text-5xl md:text-7xl font-bold text-white mb-4 tracking-widest text-center italic">READY?</h2>
+                <p id="final-score" class="text-2xl text-pink-500 mb-8 hidden font-bold tracking-widest">FINAL_SCORE: 0</p>
+                
+                <button id="start-btn" class="group relative px-12 py-5 bg-transparent overflow-hidden rounded-full border-2 border-cyan-500 text-cyan-400 font-bold text-2xl transition-all hover:text-white hover:shadow-[0_0_30px_rgba(0,255,242,0.6)]">
+                    <span class="absolute inset-0 w-full h-full bg-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span class="relative flex items-center">
+                        <i class="fas fa-bolt mr-3"></i> INITIALIZE
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Area Kontrol Mobile -->
+        <div class="controls-area w-full max-w-lg mx-auto shrink-0 mb-6">
+            <div class="grid grid-cols-3 gap-4 h-36 md:hidden">
+                <div class="flex items-center">
+                    <button class="btn-control" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+                </div>
+                <div class="flex flex-col gap-3 h-full">
+                    <button class="btn-control btn-rotate flex-1" id="btn-rotate"><i class="fas fa-redo"></i></button>
+                    <button class="btn-control flex-1" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+                </div>
+                <div class="flex items-center">
+                    <button class="btn-control" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Hint untuk Keyboard -->
+            <div class="hidden md:flex justify-center gap-12 text-gray-500 text-xs mt-6 tracking-widest uppercase">
+                <span><b class="text-cyan-400 mr-2">[← →]</b> Navigate</span>
+                <span><b class="text-pink-400 mr-2">[↑]</b> Rotate</span>
+                <span><b class="text-cyan-400 mr-2">[↓]</b> Soft Drop</span>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('tetris');
+    const context = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const startBtn = document.getElementById('start-btn');
+    const finalScoreElement = document.getElementById('final-score');
+
+    const COLS = 12;
+    const ROWS = 20;
+    const BLOCK = 20;
+    
+    // Setup Resolusi Internal
+    canvas.width = COLS * BLOCK;
+    canvas.height = ROWS * BLOCK;
+    context.scale(BLOCK, BLOCK);
+
+    // Neon Cyberpunk Theme Colors
+    const COLORS = [
+        null,
+        '#FF0055', // T (Pink)
+        '#00FFDD', // O (Cyan)
+        '#FFDD00', // L (Yellow)
+        '#BD00FF', // J (Purple)
+        '#00FF66', // I (Neon Green)
+        '#FF5500', // S (Orange)
+        '#0055FF', // Z (Blue)
+    ];
+
+    const SHAPES = [
+        [],
+        [[0, 1, 0],[1, 1, 1],[0, 0, 0]],
+        [[2, 2],[2, 2]],
+        [[0, 3, 0],[0, 3, 0],[0, 3, 3]],
+        [[0, 4, 0],[0, 4, 0],[4, 4, 0]],
+        [[0, 5, 0, 0],[0, 5, 0, 0],[0, 5, 0, 0],[0, 5, 0, 0]],
+        [[0, 6, 6],[6, 6, 0],[0, 0, 0]],
+        [[7, 7, 0],[0, 7, 7],[0, 0, 0]]
+    ];
+
+    let arena = createMatrix(COLS, ROWS);
+    let player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
+    let dropCounter = 0;
+    let dropInterval = 1000;
+    let lastTime = 0;
+    let isPaused = true;
+    let requestId;
+    let particles = [];
+
+    function createMatrix(w, h) {
+        const matrix = [];
+        while (h--) matrix.push(new Array(w).fill(0));
+        return matrix;
+    }
+
+    // Sistem Partikel untuk Baris yang Hancur
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.vx = (Math.random() - 0.5) * 0.4;
+            this.vy = (Math.random() - 0.5) * 0.4;
+            this.life = 1.0;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.03; }
+        draw(ctx) {
+            ctx.globalAlpha = Math.max(0, this.life);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, 0.15, 0.15);
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    function spawnParticles(y) {
+        for(let x=0; x<COLS; x++) {
+            for(let i=0; i<3; i++) {
+                particles.push(new Particle(x + Math.random(), y + Math.random(), '#00fff2'));
+            }
+        }
+    }
+
+    function draw() {
+        // Clear background
+        context.fillStyle = '#050510';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawMatrix(arena, {x:0, y:0});
+        
+        if(!isPaused) {
+            drawGhost();
+            drawMatrix(player.matrix, player.pos);
+        }
+
+        // Animasi partikel
+        for(let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw(context);
+            if(particles[i].life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    function drawMatrix(matrix, offset) {
+        matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    const px = x + offset.x;
+                    const py = y + offset.y;
+                    
+                    // Body
+                    context.fillStyle = COLORS[value];
+                    context.fillRect(px, py, 1, 1);
+                    
+                    // Bevel/Glow Effect
+                    context.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    context.fillRect(px, py, 1, 0.1);
+                    context.fillRect(px, py, 0.1, 1);
+                }
+            });
+        });
+    }
+
+    function drawGhost() {
+        const ghostPos = { ...player.pos };
+        while (!collide(arena, { pos: ghostPos, matrix: player.matrix })) {
+            ghostPos.y++;
+        }
+        ghostPos.y--; // Back up 1 step
+
+        player.matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    context.strokeStyle = 'rgba(0, 255, 242, 0.2)';
+                    context.lineWidth = 0.05;
+                    context.strokeRect(x + ghostPos.x, y + ghostPos.y, 1, 1);
+                }
+            });
+        });
+    }
+
+    function collide(arena, player) {
+        const [m, o] = [player.matrix, player.pos];
+        for (let y = 0; y < m.length; ++y) {
+            for (let x = 0; x < m[y].length; ++x) {
+                if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function merge(arena, player) {
+        player.matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    arena[y + player.pos.y][x + player.pos.x] = value;
+                }
+            });
+        });
+    }
+
+    function rotate(matrix, dir) {
+        for (let y = 0; y < matrix.length; ++y) {
+            for (let x = 0; x < y; ++x) {
+                [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+            }
+        }
+        if (dir > 0) matrix.forEach(row => row.reverse());
+        else matrix.reverse();
+    }
+
+    function playerReset() {
+        const typeId = Math.floor(Math.random() * (SHAPES.length - 1)) + 1;
+        player.matrix = SHAPES[typeId];
+        player.pos.y = 0;
+        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+        
+        if (collide(arena, player)) {
+            gameOver();
+        }
+    }
+
+    function playerDrop() {
+        player.pos.y++;
+        if (collide(arena, player)) {
+            player.pos.y--;
+            merge(arena, player);
+            playerReset();
+            arenaSweep();
+            updateScore();
+        }
+        dropCounter = 0;
+    }
+
+    function playerMove(dir) {
+        player.pos.x += dir;
+        if (collide(arena, player)) {
+            player.pos.x -= dir;
+        }
+    }
+
+    function playerRotate(dir) {
+        const pos = player.pos.x;
+        let offset = 1;
+        rotate(player.matrix, dir);
+        while (collide(arena, player)) {
+            player.pos.x += offset;
+            offset = -(offset + (offset > 0 ? 1 : -1));
+            if (offset > player.matrix.length) {
+                rotate(player.matrix, -dir);
+                player.pos.x = pos;
+                return;
+            }
+        }
+    }
+
+    function arenaSweep() {
+        let rowCount = 0;
+        outer: for (let y = arena.length - 1; y > 0; --y) {
+            for (let x = 0; x < arena[y].length; ++x) {
+                if (arena[y][x] === 0) continue outer;
+            }
+            const row = arena.splice(y, 1)[0].fill(0);
+            arena.unshift(row);
+            ++y;
+            rowCount++;
+            spawnParticles(y);
+        }
+        if (rowCount > 0) {
+            const lineScores = [0, 100, 300, 500, 1200];
+            player.score += lineScores[rowCount];
+            dropInterval = Math.max(100, 1000 - (player.score / 5));
+            
+            // Effect
+            canvas.style.filter = 'brightness(2)';
+            setTimeout(() => canvas.style.filter = 'none', 100);
+        }
+    }
+
+    function updateScore() {
+        scoreElement.innerText = player.score;
+    }
+
+    function update(time = 0) {
+        if(isPaused) return;
+        const deltaTime = time - lastTime;
+        lastTime = time;
+
+        dropCounter += deltaTime;
+        if (dropCounter > dropInterval) {
+            playerDrop();
+        }
+
+        draw();
+        requestId = requestAnimationFrame(update);
+    }
+
+    function gameOver() {
+        isPaused = true;
+        cancelAnimationFrame(requestId);
+        overlayTitle.innerText = "FATAL ERROR";
+        finalScoreElement.innerText = `SCORE: ${player.score}`;
+        finalScoreElement.classList.remove('hidden');
+        startBtn.innerHTML = '<i class="fas fa-redo mr-3"></i> REBOOT';
+        overlay.classList.remove('hidden');
+        overlay.style.pointerEvents = "auto";
+    }
+
+    function resetGame() {
+        arena.forEach(row => row.fill(0));
+        player.score = 0;
+        updateScore();
+        playerReset();
+        particles = [];
+        isPaused = false;
+        overlay.classList.add('hidden');
+        overlay.style.pointerEvents = "none";
+        lastTime = performance.now();
+        update();
+    }
+
+    // Input Controller
+    startBtn.addEventListener('click', resetGame);
+
+    document.addEventListener('keydown', event => {
+        if(isPaused) return;
+        if (event.keyCode === 37) playerMove(-1);
+        else if (event.keyCode === 39) playerMove(1);
+        else if (event.keyCode === 40) playerDrop();
+        else if (event.keyCode === 38) playerRotate(1);
+    });
+
+    function setupMobileControl(id, action) {
+        const el = document.getElementById(id);
+        const handle = (e) => {
+            e.preventDefault();
+            if(!isPaused) action();
+        };
+        el.addEventListener('touchstart', handle, {passive: false});
+        el.addEventListener('mousedown', handle);
+    }
+
+    setupMobileControl('btn-left', () => playerMove(-1));
+    setupMobileControl('btn-right', () => playerMove(1));
+    setupMobileControl('btn-rotate', () => playerRotate(1));
+    setupMobileControl('btn-down', () => playerDrop());
+
+    // Initial render
+    draw();
+
+</script>
+</body>
+</html>
