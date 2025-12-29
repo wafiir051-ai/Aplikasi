@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neo Tetris Cyberpunk</title>
+    <title>Neo Tetris Cyberpunk - Pro Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -28,7 +28,6 @@
             flex-direction: column;
         }
 
-        /* Latar Belakang Animasi Cyberpunk */
         .bg-cyberpunk {
             position: fixed;
             top: 0;
@@ -60,7 +59,6 @@
             100% { transform: perspective(500px) rotateX(60deg) translateY(-50px); }
         }
 
-        /* Container Game Responsif */
         .game-wrapper {
             position: relative;
             height: 100%; 
@@ -69,7 +67,7 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
-            min-height: 0; /* Penting untuk flexbox */
+            min-height: 0;
         }
 
         canvas {
@@ -88,45 +86,41 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--primary);
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             backdrop-filter: blur(8px);
             transition: all 0.1s;
             width: 100%;
             height: 100%; 
-            min-height: 64px;
             -webkit-tap-highlight-color: transparent;
         }
 
         .btn-control:active {
             background: rgba(0, 255, 242, 0.3);
-            transform: scale(0.92);
-            box-shadow: 0 0 20px var(--primary);
+            transform: scale(0.9);
+            box-shadow: 0 0 15px var(--primary);
             border-color: var(--primary);
         }
 
-        .btn-rotate { 
-            color: var(--secondary); 
-            border-color: rgba(255, 0, 222, 0.3); 
-        }
+        .btn-rotate-cw { color: var(--secondary); border-color: rgba(255, 0, 222, 0.3); }
+        .btn-rotate-ccw { color: #facc15; border-color: rgba(250, 204, 21, 0.3); }
 
         .layout-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px;
-            gap: 15px;
+            padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) 10px;
+            gap: 10px;
             max-height: 100dvh;
         }
 
-        /* Mode Landscape untuk HP */
         @media (orientation: landscape) and (max-height: 600px) {
             .layout-container { flex-direction: row; align-items: center; }
-            .controls-area { width: 300px; height: 100%; justify-content: center; }
-            .header-area { position: absolute; top: 20px; left: 20px; z-index: 50; width: auto; }
+            .controls-area { width: 350px; height: 100%; justify-content: center; }
+            .header-area { position: absolute; top: 10px; left: 10px; z-index: 50; width: auto; }
         }
 
         .glass-panel {
@@ -145,12 +139,11 @@
         <!-- Area Header -->
         <div class="header-area flex justify-between items-center w-full max-w-2xl mx-auto shrink-0 z-20">
             <div>
-                <h1 class="text-2xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">NEO-TETRIS</h1>
-                <p class="text-[8px] text-cyan-500/70 tracking-[0.5em] uppercase">V 4.0 Neural Link</p>
+                <h1 class="text-xl md:text-2xl font-bold tracking-[0.1em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">NEO-TETRIS</h1>
             </div>
-            <div class="glass-panel px-5 py-2 rounded-xl text-right">
-                <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Score</p>
-                <p id="score" class="text-2xl font-bold text-white leading-none">0</p>
+            <div class="glass-panel px-4 py-1 rounded-xl text-right">
+                <p class="text-[8px] text-gray-400 uppercase tracking-widest">Score</p>
+                <p id="score" class="text-xl font-bold text-white leading-none">0</p>
             </div>
         </div>
 
@@ -158,46 +151,50 @@
         <div class="game-wrapper flex-1 min-h-0">
             <canvas id="tetris" width="240" height="400"></canvas>
             
-            <!-- Layar Overlay -->
             <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl z-30 transition-all rounded-lg border border-white/10">
-                <h2 id="overlay-title" class="text-5xl md:text-7xl font-bold text-white mb-4 tracking-widest text-center italic">READY?</h2>
-                <p id="final-score" class="text-2xl text-pink-500 mb-8 hidden font-bold tracking-widest">FINAL_SCORE: 0</p>
+                <h2 id="overlay-title" class="text-4xl md:text-6xl font-bold text-white mb-4 tracking-widest text-center italic">READY?</h2>
+                <p id="final-score" class="text-xl text-pink-500 mb-8 hidden font-bold tracking-widest">SCORE: 0</p>
                 
-                <button id="start-btn" class="group relative px-12 py-5 bg-transparent overflow-hidden rounded-full border-2 border-cyan-500 text-cyan-400 font-bold text-2xl transition-all hover:text-white hover:shadow-[0_0_30px_rgba(0,255,242,0.6)]">
-                    <span class="absolute inset-0 w-full h-full bg-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    <span class="relative flex items-center">
-                        <i class="fas fa-bolt mr-3"></i> INITIALIZE
-                    </span>
+                <button id="start-btn" class="px-10 py-4 bg-transparent rounded-full border-2 border-cyan-500 text-cyan-400 font-bold text-xl transition-all hover:bg-cyan-500 hover:text-white">
+                    INITIALIZE
                 </button>
             </div>
         </div>
 
-        <!-- Area Kontrol Mobile -->
-        <div class="controls-area w-full max-w-lg mx-auto shrink-0 mb-6">
-            <div class="grid grid-cols-3 gap-4 h-36 md:hidden">
+        <!-- Area Kontrol Mobile (D-Pad Style) -->
+        <div class="controls-area w-full max-w-lg mx-auto shrink-0 pb-2">
+            <div class="grid grid-cols-5 gap-2 h-24 md:hidden">
+                <!-- Rotasi Kiri -->
                 <div class="flex items-center">
-                    <button class="btn-control" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn-control btn-rotate-ccw" id="btn-rotate-ccw">
+                        <i class="fas fa-undo"></i>
+                    </button>
                 </div>
-                <div class="flex flex-col gap-3 h-full">
-                    <button class="btn-control btn-rotate flex-1" id="btn-rotate"><i class="fas fa-redo"></i></button>
-                    <button class="btn-control flex-1" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+                <!-- Navigasi D-Pad -->
+                <div class="col-span-3 grid grid-cols-3 gap-1">
+                    <div></div>
+                    <button class="btn-control" id="btn-up"><i class="fas fa-arrow-up"></i></button>
+                    <div></div>
+                    <button class="btn-control" id="btn-left"><i class="fas fa-arrow-left"></i></button>
+                    <button class="btn-control" id="btn-down"><i class="fas fa-arrow-down"></i></button>
+                    <button class="btn-control" id="btn-right"><i class="fas fa-arrow-right"></i></button>
                 </div>
+                <!-- Rotasi Kanan -->
                 <div class="flex items-center">
-                    <button class="btn-control" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+                    <button class="btn-control btn-rotate-cw" id="btn-rotate-cw">
+                        <i class="fas fa-redo"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Hint untuk Keyboard -->
-            <div class="hidden md:flex justify-center gap-12 text-gray-500 text-xs mt-6 tracking-widest uppercase">
-                <span><b class="text-cyan-400 mr-2">[← →]</b> Navigate</span>
-                <span><b class="text-pink-400 mr-2">[↑]</b> Rotate</span>
-                <span><b class="text-cyan-400 mr-2">[↓]</b> Soft Drop</span>
+            <div class="hidden md:flex justify-center gap-8 text-gray-500 text-[10px] tracking-widest uppercase">
+                <span><b class="text-cyan-400">[WASD / Panah]</b> Gerak</span>
+                <span><b class="text-pink-400">[Q/E]</b> Rotasi Manual</span>
             </div>
         </div>
     </div>
 
 <script>
-    /** @type {HTMLCanvasElement} */
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
@@ -210,22 +207,11 @@
     const ROWS = 20;
     const BLOCK = 20;
     
-    // Setup Resolusi Internal
     canvas.width = COLS * BLOCK;
     canvas.height = ROWS * BLOCK;
     context.scale(BLOCK, BLOCK);
 
-    // Neon Cyberpunk Theme Colors
-    const COLORS = [
-        null,
-        '#FF0055', // T (Pink)
-        '#00FFDD', // O (Cyan)
-        '#FFDD00', // L (Yellow)
-        '#BD00FF', // J (Purple)
-        '#00FF66', // I (Neon Green)
-        '#FF5500', // S (Orange)
-        '#0055FF', // Z (Blue)
-    ];
+    const COLORS = [null, '#FF0055', '#00FFDD', '#FFDD00', '#BD00FF', '#00FF66', '#FF5500', '#0055FF'];
 
     const SHAPES = [
         [],
@@ -253,7 +239,6 @@
         return matrix;
     }
 
-    // Sistem Partikel untuk Baris yang Hancur
     class Particle {
         constructor(x, y, color) {
             this.x = x; this.y = y; this.color = color;
@@ -261,7 +246,7 @@
             this.vy = (Math.random() - 0.5) * 0.4;
             this.life = 1.0;
         }
-        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.03; }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.04; }
         draw(ctx) {
             ctx.globalAlpha = Math.max(0, this.life);
             ctx.fillStyle = this.color;
@@ -272,25 +257,18 @@
 
     function spawnParticles(y) {
         for(let x=0; x<COLS; x++) {
-            for(let i=0; i<3; i++) {
-                particles.push(new Particle(x + Math.random(), y + Math.random(), '#00fff2'));
-            }
+            for(let i=0; i<3; i++) particles.push(new Particle(x + Math.random(), y + Math.random(), '#00fff2'));
         }
     }
 
     function draw() {
-        // Clear background
         context.fillStyle = '#050510';
         context.fillRect(0, 0, canvas.width, canvas.height);
-
         drawMatrix(arena, {x:0, y:0});
-        
         if(!isPaused) {
             drawGhost();
             drawMatrix(player.matrix, player.pos);
         }
-
-        // Animasi partikel
         for(let i = particles.length - 1; i >= 0; i--) {
             particles[i].update();
             particles[i].draw(context);
@@ -302,17 +280,10 @@
         matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    const px = x + offset.x;
-                    const py = y + offset.y;
-                    
-                    // Body
                     context.fillStyle = COLORS[value];
-                    context.fillRect(px, py, 1, 1);
-                    
-                    // Bevel/Glow Effect
+                    context.fillRect(x + offset.x, y + offset.y, 1, 1);
                     context.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                    context.fillRect(px, py, 1, 0.1);
-                    context.fillRect(px, py, 0.1, 1);
+                    context.fillRect(x + offset.x, y + offset.y, 1, 0.1);
                 }
             });
         });
@@ -320,11 +291,8 @@
 
     function drawGhost() {
         const ghostPos = { ...player.pos };
-        while (!collide(arena, { pos: ghostPos, matrix: player.matrix })) {
-            ghostPos.y++;
-        }
-        ghostPos.y--; // Back up 1 step
-
+        while (!collide(arena, { pos: ghostPos, matrix: player.matrix })) ghostPos.y++;
+        ghostPos.y--;
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
@@ -340,9 +308,7 @@
         const [m, o] = [player.matrix, player.pos];
         for (let y = 0; y < m.length; ++y) {
             for (let x = 0; x < m[y].length; ++x) {
-                if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
-                    return true;
-                }
+                if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
             }
         }
         return false;
@@ -351,18 +317,14 @@
     function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
-                if (value !== 0) {
-                    arena[y + player.pos.y][x + player.pos.x] = value;
-                }
+                if (value !== 0) arena[y + player.pos.y][x + player.pos.x] = value;
             });
         });
     }
 
     function rotate(matrix, dir) {
         for (let y = 0; y < matrix.length; ++y) {
-            for (let x = 0; x < y; ++x) {
-                [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-            }
+            for (let x = 0; x < y; ++x) [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
         }
         if (dir > 0) matrix.forEach(row => row.reverse());
         else matrix.reverse();
@@ -373,10 +335,7 @@
         player.matrix = SHAPES[typeId];
         player.pos.y = 0;
         player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-        
-        if (collide(arena, player)) {
-            gameOver();
-        }
+        if (collide(arena, player)) gameOver();
     }
 
     function playerDrop() {
@@ -393,9 +352,7 @@
 
     function playerMove(dir) {
         player.pos.x += dir;
-        if (collide(arena, player)) {
-            player.pos.x -= dir;
-        }
+        if (collide(arena, player)) player.pos.x -= dir;
     }
 
     function playerRotate(dir) {
@@ -426,13 +383,8 @@
             spawnParticles(y);
         }
         if (rowCount > 0) {
-            const lineScores = [0, 100, 300, 500, 1200];
-            player.score += lineScores[rowCount];
-            dropInterval = Math.max(100, 1000 - (player.score / 5));
-            
-            // Effect
-            canvas.style.filter = 'brightness(2)';
-            setTimeout(() => canvas.style.filter = 'none', 100);
+            player.score += rowCount * 100;
+            dropInterval = Math.max(100, 1000 - (player.score / 10));
         }
     }
 
@@ -444,12 +396,8 @@
         if(isPaused) return;
         const deltaTime = time - lastTime;
         lastTime = time;
-
         dropCounter += deltaTime;
-        if (dropCounter > dropInterval) {
-            playerDrop();
-        }
-
+        if (dropCounter > dropInterval) playerDrop();
         draw();
         requestId = requestAnimationFrame(update);
     }
@@ -457,10 +405,9 @@
     function gameOver() {
         isPaused = true;
         cancelAnimationFrame(requestId);
-        overlayTitle.innerText = "FATAL ERROR";
+        overlayTitle.innerText = "GAME OVER";
         finalScoreElement.innerText = `SCORE: ${player.score}`;
         finalScoreElement.classList.remove('hidden');
-        startBtn.innerHTML = '<i class="fas fa-redo mr-3"></i> REBOOT';
         overlay.classList.remove('hidden');
         overlay.style.pointerEvents = "auto";
     }
@@ -478,35 +425,35 @@
         update();
     }
 
-    // Input Controller
     startBtn.addEventListener('click', resetGame);
 
     document.addEventListener('keydown', event => {
         if(isPaused) return;
-        if (event.keyCode === 37) playerMove(-1);
-        else if (event.keyCode === 39) playerMove(1);
-        else if (event.keyCode === 40) playerDrop();
-        else if (event.keyCode === 38) playerRotate(1);
+        // Navigation
+        if (event.key === 'ArrowLeft' || event.key === 'a') playerMove(-1);
+        else if (event.key === 'ArrowRight' || event.key === 'd') playerMove(1);
+        else if (event.key === 'ArrowDown' || event.key === 's') playerDrop();
+        else if (event.key === 'ArrowUp' || event.key === 'w') playerRotate(1);
+        // Rotation Manual
+        else if (event.key === 'q') playerRotate(-1);
+        else if (event.key === 'e') playerRotate(1);
     });
 
-    function setupMobileControl(id, action) {
+    function setupTouch(id, action) {
         const el = document.getElementById(id);
-        const handle = (e) => {
-            e.preventDefault();
-            if(!isPaused) action();
-        };
+        const handle = (e) => { e.preventDefault(); if(!isPaused) action(); };
         el.addEventListener('touchstart', handle, {passive: false});
         el.addEventListener('mousedown', handle);
     }
 
-    setupMobileControl('btn-left', () => playerMove(-1));
-    setupMobileControl('btn-right', () => playerMove(1));
-    setupMobileControl('btn-rotate', () => playerRotate(1));
-    setupMobileControl('btn-down', () => playerDrop());
+    setupTouch('btn-left', () => playerMove(-1));
+    setupTouch('btn-right', () => playerMove(1));
+    setupTouch('btn-up', () => playerRotate(1));
+    setupTouch('btn-down', () => playerDrop());
+    setupTouch('btn-rotate-cw', () => playerRotate(1));
+    setupTouch('btn-rotate-ccw', () => playerRotate(-1));
 
-    // Initial render
     draw();
-
 </script>
 </body>
 </html>
