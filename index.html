@@ -3,359 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neo Tetris Cyberpunk</title>
-    <!-- Tailwind CSS untuk styling cepat dan responsif -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome untuk ikon -->
+    <title>Neo Tetris: Final Interface</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts untuk nuansa Cyberpunk -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
         :root {
             --primary: #00fff2;
             --secondary: #ff00de;
+            --accent: #7000ff;
             --warning: #facc15;
             --danger: #ff2200;
             --bg-dark: #05050a;
+            --glass: rgba(10, 10, 30, 0.7);
+            --font-tech: 'Orbitron', sans-serif;
+            --font-main: 'Rajdhani', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: none;
         }
 
         body {
-            font-family: 'Rajdhani', sans-serif;
+            font-family: var(--font-main);
             margin: 0;
             padding: 0;
             overflow: hidden; 
             background-color: var(--bg-dark);
             color: #fff;
-            touch-action: none; 
             height: 100dvh; 
             width: 100vw;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Layar Pemuatan (Loading Screen) */
-        #loading-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-dark);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            transition: opacity 0.8s ease, visibility 0.8s;
         }
 
-        .loading-bar-container {
-            width: 250px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            position: relative;
-            margin-top: 20px;
+        /* --- FUTURISTIC BACKGROUND --- */
+        .bg-layer {
+            position: fixed; inset: 0; z-index: -1;
+            background: linear-gradient(to bottom, #05050a, #0a0a20);
             overflow: hidden;
         }
 
-        .loading-bar-fill {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 0%;
-            background: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            animation: load-progress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        .grid-plane {
+            position: absolute; width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 242, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: grid-move 20s linear infinite;
         }
 
-        @keyframes load-progress {
-            0% { width: 0%; }
-            100% { width: 100%; }
+        @keyframes grid-move {
+            from { background-position: 0 0; }
+            to { background-position: 0 1000px; }
         }
 
-        /* Latar Belakang Animasi */
-        #bg-canvas { position: fixed; inset: 0; z-index: -2; }
-        .scanlines { position: fixed; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 4px; z-index: -1; pointer-events: none; opacity: 0.3; }
-        .cyber-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 222, 0.05) 1px, transparent 1px); background-size: 50px 50px; z-index: -1; animation: pulse-grid 8s ease-in-out infinite; }
+        .neon-blur {
+            position: absolute; width: 400px; height: 400px;
+            border-radius: 50%; filter: blur(120px); opacity: 0.15;
+            pointer-events: none;
+        }
 
-        @keyframes pulse-grid { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
+        /* --- UI WRAPPER --- */
+        #loading-screen {
+            position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .layout-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
-            max-height: 100dvh;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
+        .cyber-loader {
+            width: 250px; height: 4px; background: rgba(255,255,255,0.05);
+            position: relative; border-radius: 10px; overflow: hidden;
+        }
+        .cyber-loader::after {
+            content: ''; position: absolute; left: 0; width: 40%; height: 100%;
+            background: var(--primary); box-shadow: 0 0 20px var(--primary);
+            animation: slide 1.5s infinite ease-in-out;
+        }
+        @keyframes slide { 0% { left: -40%; } 100% { left: 100%; } }
+
+        /* --- HOME INTERFACE --- */
+        #home-page {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; width: 100%; padding: 20px;
+        }
+
+        .main-frame {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 255, 242, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%; max-width: 420px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 255, 242, 0.1);
+        }
+
+        .main-frame::before {
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 26px; background: linear-gradient(45deg, var(--primary), transparent, var(--secondary));
+            z-index: -1; opacity: 0.3;
+        }
+
+        .title-glitch {
+            font-family: var(--font-tech); font-weight: 900; font-size: 3.5rem; margin: 0;
+            letter-spacing: 5px; color: #fff; text-shadow: 3px 3px var(--secondary);
             position: relative;
         }
 
-        canvas#tetris {
-            image-rendering: pixelated; 
-            box-shadow: 0 0 40px rgba(0, 255, 242, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 255, 242, 0.3);
-            background: rgba(2, 2, 5, 0.95);
-            max-height: 100%;
-            max-width: 100%;
-            border-radius: 4px;
-            aspect-ratio: 12 / 20;
+        input {
+            width: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(0, 255, 242, 0.5);
+            padding: 16px; color: var(--primary); border-radius: 12px; margin: 30px 0;
+            text-align: center; font-family: var(--font-tech); font-size: 1rem; outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 255, 242, 0.3); }
+
+        .mode-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px; }
+        .mode-chip {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;
+            font-family: var(--font-tech); font-size: 0.7rem; transition: 0.3s;
+        }
+        .mode-chip.active {
+            background: rgba(0, 255, 242, 0.1); border-color: var(--primary);
+            color: var(--primary); box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
         }
 
-        .btn-control {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(0, 255, 242, 0.15);
-            color: var(--primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            user-select: none;
+        .btn-action {
+            width: 100%; padding: 20px; background: var(--primary); color: #000;
+            border: none; border-radius: 12px; font-family: var(--font-tech); font-weight: 900;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
+            transition: 0.3s;
+        }
+        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn-action:active { transform: scale(0.98); }
+
+        /* --- GAME INTERFACE --- */
+        #game-ui {
+            width: 100%; height: 100dvh; display: none; flex-direction: column;
+            padding: 20px; gap: 15px;
+        }
+
+        .header-status { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 10px; }
+        .stat-box {
+            background: var(--glass); border-left: 3px solid var(--primary);
+            padding: 10px; border-radius: 4px 12px 12px 4px;
+        }
+        .stat-label { font-size: 0.6rem; color: var(--primary); opacity: 0.7; letter-spacing: 1px; font-family: var(--font-tech); }
+        .stat-value { font-size: 1.1rem; font-weight: 700; display: block; font-family: var(--font-tech); }
+
+        .main-canvas-area {
+            flex: 1; position: relative; display: flex; justify-content: center; align-items: center;
+            perspective: 1000px;
+        }
+
+        canvas#tetris {
+            background: rgba(0,0,0,0.8); border: 2px solid rgba(0, 255, 242, 0.2);
+            border-radius: 12px; height: 90%; max-height: 550px; width: auto;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 1);
+            transition: transform 0.1s ease-out;
+        }
+
+        .controls-grid {
+            display: grid; grid-template-areas: "hL drop hR" "left down right";
+            grid-template-columns: 1fr 1.2fr 1fr; gap: 12px; 
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .btn-joy {
+            height: 55px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; color: #fff; font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(5px);
         }
+        .btn-joy:active { background: var(--primary); color: #000; border-color: #fff; }
+        .btn-special { background: rgba(250, 204, 21, 0.1); border-color: var(--warning); color: var(--warning); }
 
-        .btn-control:active { background: var(--primary); color: black; box-shadow: 0 0 15px var(--primary); transform: scale(0.95); }
-
-        .glass-panel {
-            background: rgba(10, 10, 25, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        .overlay-card {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 300; backdrop-filter: blur(15px);
         }
 
-        .menu-btn {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(0, 255, 242, 0.2);
-            background: rgba(0, 255, 242, 0.03);
-            color: var(--primary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-radius: 4px;
-            transition: all 0.3s;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.7rem;
-        }
-
-        .menu-btn:hover { background: rgba(0, 255, 242, 0.1); border-color: var(--primary); }
-        .mode-active { border-color: var(--secondary) !important; color: var(--secondary) !important; background: rgba(255, 0, 222, 0.05) !important; }
-
-        .glitch-text { font-family: 'Orbitron', sans-serif; position: relative; text-shadow: 2px 0 var(--danger), -2px 0 var(--primary); }
-        .hidden-transition { opacity: 0 !important; visibility: hidden !important; }
-
-        /* Leaderboard Items */
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.85rem;
-            transition: background 0.3s;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- LAYAR LOADING -->
+    <div class="bg-layer">
+        <div class="grid-plane"></div>
+        <div class="neon-blur" style="top: -100px; left: -100px; background: var(--accent);"></div>
+        <div class="neon-blur" style="bottom: -100px; right: -100px; background: var(--secondary);"></div>
+    </div>
+
     <div id="loading-screen">
-        <div class="mb-4 text-center">
-            <h2 class="text-2xl font-bold glitch-text italic mb-1 tracking-widest">NEO LINK</h2>
-            <p class="text-[10px] text-cyan-400 uppercase tracking-[0.4em] animate-pulse">Menghubungkan ke Cloud...</p>
-        </div>
-        <div class="loading-bar-container">
-            <div class="loading-bar-fill"></div>
-        </div>
-        <p class="mt-4 text-[9px] text-gray-500 uppercase tracking-widest font-mono" id="loading-text">Menyinkronkan Data Saraf...</p>
+        <h2 style="font-family: var(--font-tech); letter-spacing: 10px; margin-bottom: 20px;">LINKING...</h2>
+        <div class="cyber-loader"></div>
     </div>
 
-    <canvas id="bg-canvas"></canvas>
-    <div class="cyber-grid"></div>
-    <div class="scanlines"></div>
-
-    <!-- HALAMAN BERANDA -->
-    <div id="home-page" class="fixed inset-0 z-50 flex items-center justify-center p-6 opacity-0 invisible transition-all duration-700">
-        <div class="glass-panel w-full max-w-4xl p-8 rounded-lg flex flex-col md:flex-row gap-8">
-            <!-- Menu Kiri -->
-            <div class="flex-1 text-center">
-                <div class="mb-2">
-                    <span class="text-[10px] text-pink-500 tracking-[0.5em] font-bold uppercase">Sistem Override</span>
-                </div>
-                <h1 class="text-3xl font-bold glitch-text mb-4 italic">NEO TETRIS</h1>
-                
-                <div class="mb-4 text-left">
-                    <label class="text-[9px] uppercase text-cyan-500 font-bold mb-1 block">Alias Hacker</label>
-                    <input type="text" id="username-input" placeholder="Masukkan Nama..." maxlength="15" class="w-full bg-black/40 border border-cyan-500/30 p-2 rounded text-sm text-cyan-100 focus:outline-none focus:border-cyan-500 transition-all font-mono">
-                    <p id="user-id-display" class="text-[8px] text-gray-600 mt-1 uppercase truncate"></p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <button onclick="setMode('classic')" id="mode-classic" class="menu-btn mode-active">Classic</button>
-                    <button onclick="setMode('insane')" id="mode-insane" class="menu-btn">Insane</button>
-                    <button onclick="setMode('speed')" id="mode-speed" class="menu-btn">Speed</button>
-                    <button onclick="setMode('invisible')" id="mode-invisible" class="menu-btn">Hidden</button>
-                </div>
-                
-                <button onclick="startGame()" class="w-full py-4 bg-cyan-500 text-black font-bold rounded uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(0,255,242,0.3)] hover:brightness-110 active:scale-95 transition-all font-['Orbitron'] text-xs">
-                    MULAI LINK
-                </button>
+    <div id="home-page">
+        <div class="main-frame">
+            <h1 class="title-glitch">NEO-T</h1>
+            <p style="font-size: 0.7rem; letter-spacing: 5px; opacity: 0.6; margin-top: 5px;">INTERFACE v2.0</p>
+            
+            <input type="text" id="username" placeholder="IDENTITAS OPERATOR" maxlength="12">
+            
+            <div class="mode-selector">
+                <button class="mode-chip active" id="m-classic" onclick="setMode('classic', 'm-classic')">CLASSIC</button>
+                <button class="mode-chip" id="m-insane" onclick="setMode('insane', 'm-insane')">OVERLOAD</button>
+                <button class="mode-chip" id="m-speed" onclick="setMode('speed', 'm-speed')">SPEED</button>
+                <button class="mode-chip" id="m-ghost" onclick="setMode('hidden', 'm-ghost')">ZEN</button>
             </div>
 
-            <!-- Papan Peringkat Kanan -->
-            <div class="flex-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8 overflow-hidden flex flex-col min-h-[300px]">
-                <h3 class="text-xs font-bold text-pink-500 uppercase tracking-widest mb-4 flex items-center justify-between">
-                    <span><i class="fas fa-trophy mr-2"></i> Papan Peringkat Global</span>
-                </h3>
-                <div id="leaderboard-list" class="flex-1 overflow-y-auto max-h-[400px] scrollbar-hide space-y-1">
-                    <div class="text-[10px] text-gray-500 italic py-4 text-center">Memuat kedudukan pemain...</div>
-                </div>
+            <div class="leaderboard" id="leaderboard-list" style="margin-bottom: 25px; max-height: 120px; overflow-y: auto; text-align: left;">
+                <!-- Data Leaderboard -->
             </div>
+
+            <button class="btn-action" onclick="startGame()">SYNCHRONIZE</button>
         </div>
     </div>
 
-    <!-- UI GAMEPLAY -->
-    <div id="game-ui" class="layout-container hidden">
-        <div class="flex justify-between items-end py-4 gap-4">
-            <div class="glass-panel px-4 py-2 rounded-md border-l-4 border-cyan-500">
-                <span class="text-[9px] text-cyan-500 block uppercase font-bold tracking-widest">Protokol</span>
-                <span id="display-mode" class="text-xs font-bold text-white uppercase">Classic</span>
+    <div id="game-ui">
+        <div class="header-status">
+            <div class="stat-box">
+                <span class="stat-label">OPERATOR</span>
+                <span id="player-alias" class="stat-value" style="color: var(--secondary); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis;">GUEST</span>
             </div>
-            <div class="flex-1 text-right">
-                <span class="text-[9px] text-pink-500 block uppercase font-bold tracking-widest">Aliran Data</span>
-                <span id="score" class="text-3xl font-bold text-white tracking-tighter tabular-nums">0</span>
+            <div class="stat-box" style="border-left-color: var(--warning);">
+                <span class="stat-label">LVL</span>
+                <span id="level-val" class="stat-value">1</span>
             </div>
-            <button onclick="quitToHome()" class="glass-panel w-10 h-10 flex items-center justify-center rounded-md text-red-500 hover:bg-red-500/10 transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="stat-box">
+                <span class="stat-label">DATA POOL</span>
+                <span id="score" class="stat-value" style="color: var(--primary);">0</span>
+            </div>
         </div>
 
-        <div class="game-wrapper flex-1 relative flex justify-center items-center overflow-hidden">
-            <div id="combo-notif" class="absolute pointer-events-none opacity-0 transition-all font-['Orbitron'] font-bold text-3xl italic text-pink-400 z-20">COMBO</div>
+        <div class="main-canvas-area">
             <canvas id="tetris"></canvas>
             
-            <div id="gameover-overlay" class="absolute inset-0 hidden flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl z-30 p-8 rounded border border-red-500/20">
-                <div class="text-red-500 text-5xl mb-4"><i class="fas fa-radiation"></i></div>
-                <h2 class="text-2xl font-bold text-red-500 mb-1 uppercase tracking-[0.3em] font-['Orbitron']">RALAT LINK</h2>
-                <p id="saving-status" class="text-gray-500 text-[10px] mb-6 uppercase tracking-widest">Skor disimpan...</p>
-                <p id="final-score" class="text-3xl text-white mb-10 font-bold tabular-nums">0</p>
-                <button onclick="startGame()" class="menu-btn w-full max-w-xs !border-cyan-500 !text-cyan-500">MULAI ULANG</button>
-                <button onclick="quitToHome()" class="text-gray-500 mt-6 uppercase text-[10px] tracking-widest hover:text-white transition-colors">KEMBALI KE MENU</button>
+            <div id="gameover-overlay" class="overlay-card">
+                <h2 style="font-family: var(--font-tech); color: var(--danger); font-size: 2.5rem; margin: 0;">DISCONNECTED</h2>
+                <p id="final-score" style="font-family: var(--font-tech); margin: 20px 0; font-size: 1.2rem;">SCORE: 0</p>
+                <button class="btn-action" onclick="startGame()" style="width: 220px;">RE-SYNC</button>
+                <p onclick="quitToHome()" style="margin-top: 20px; cursor: pointer; opacity: 0.4; font-size: 0.8rem; letter-spacing: 2px;">ABORT MISSION</p>
             </div>
         </div>
 
-        <!-- Kontrol Sentuh -->
-        <div class="grid grid-cols-5 gap-3 h-32 py-4 shrink-0 font-['Orbitron']">
-            <button class="btn-control text-yellow-400" id="btn-rotate-ccw"><i class="fas fa-undo"></i></button>
-            <div class="col-span-3 grid grid-cols-3 gap-2">
-                <div></div>
-                <button class="btn-control" id="btn-up"><i class="fas fa-angle-double-down"></i></button>
-                <div></div>
-                <button class="btn-control" id="btn-left"><i class="fas fa-chevron-left"></i></button>
-                <button class="btn-control" id="btn-down"><i class="fas fa-chevron-down"></i></button>
-                <button class="btn-control" id="btn-right"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <button class="btn-control text-pink-500" id="btn-rotate-cw"><i class="fas fa-redo"></i></button>
+        <div class="controls-grid">
+            <button class="btn-joy" id="ctrl-rot-ccw"><i class="fas fa-arrow-rotate-left"></i></button>
+            <button class="btn-joy btn-special" id="ctrl-hard-drop"><i class="fas fa-bolt"></i></button>
+            <button class="btn-joy" id="ctrl-rot-cw"><i class="fas fa-arrow-rotate-right"></i></button>
+            <button class="btn-joy" id="ctrl-left"><i class="fas fa-chevron-left"></i></button>
+            <button class="btn-joy" id="ctrl-down"><i class="fas fa-chevron-down"></i></button>
+            <button class="btn-joy" id="ctrl-right"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 
 <script type="module">
-    // Mengimpor fungsi Firebase menggunakan ES Modules (Vanilla JS)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Konfigurasi dari lingkungan
+    // Configuration
     const firebaseConfig = JSON.parse(__firebase_config);
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'tetris-cyber-app';
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'tetris-neo-elite-v2';
 
-    let user = null;
-    let userData = { username: "Hacker-Anon", highscore: 0 };
-    const usernameInput = document.getElementById('username-input');
-    const leaderboardList = document.getElementById('leaderboard-list');
+    let currentUser = null;
+    let scores = [];
 
-    // Inisialisasi Auth
+    // System Initialization
     const initAuth = async () => {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-            await signInAnonymously(auth);
-        }
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else { await signInAnonymously(auth); }
+        } catch (e) { console.error("Auth Fail", e); }
     };
 
-    onAuthStateChanged(auth, async (u) => {
-        if (u) {
-            user = u;
-            document.getElementById('user-id-display').innerText = `NODE-ID: ${user.uid}`;
-            
-            const userDoc = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
-            const snap = await getDoc(userDoc);
-            
-            if (snap.exists()) {
-                userData = snap.data();
-                usernameInput.value = userData.username;
-            } else {
-                await setDoc(userDoc, { username: userData.username, highscore: 0, uid: user.uid });
-                // Tambahkan ke leaderboard publik
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), {
-                    username: userData.username,
-                    highscore: 0,
-                    uid: user.uid,
-                    updatedAt: Date.now()
-                });
-            }
-            
-            // Listener Real-time untuk SEMUA akun di Leaderboard
-            const q = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
-            onSnapshot(q, (snapshot) => {
-                const players = [];
-                snapshot.forEach(doc => players.push(doc.data()));
-                renderLeaderboard(players);
-            });
-        }
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            setupLeaderboard();
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 800);
+            }, 1200);
+        } else { initAuth(); }
     });
 
-    initAuth();
+    function setupLeaderboard() {
+        const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+        onSnapshot(scoresRef, (snap) => {
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            scores = list.sort((a, b) => b.score - a.score).slice(0, 5);
+            renderLeaderboard();
+        }, (e) => console.log("LB Offline"));
+    }
 
-    function renderLeaderboard(players) {
-        players.sort((a, b) => b.highscore - a.highscore);
-        leaderboardList.innerHTML = players.map((p, i) => `
-            <div class="leaderboard-item ${p.uid === user?.uid ? 'bg-cyan-500/10 border-l-2 border-cyan-500' : ''}">
-                <div class="flex items-center gap-2 overflow-hidden">
-                    <span class="font-mono text-[9px] opacity-50">${i+1}.</span>
-                    <span class="font-bold truncate ${p.uid === user?.uid ? 'text-cyan-400' : 'text-white'}">${p.username}</span>
-                </div>
-                <span class="font-mono text-cyan-400">${p.highscore.toLocaleString()}</span>
+    function renderLeaderboard() {
+        const el = document.getElementById('leaderboard-list');
+        if (!scores.length) { el.innerHTML = '<p style="opacity:0.3;font-size:0.7rem">NO GLOBAL DATA</p>'; return; }
+        el.innerHTML = `<label style="color:var(--primary);font-size:0.6rem;letter-spacing:2px;display:block;margin-bottom:8px">GLOBAL TOP OPERATORS</label>` + 
+        scores.map((s, i) => `
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                <span style="opacity:0.8"><b style="color:var(--secondary)">#${i+1}</b> ${s.name}</span>
+                <span style="color:var(--primary);font-weight:700">${s.score}</span>
             </div>
         `).join('');
     }
 
-    usernameInput.addEventListener('change', async () => {
-        if (!user) return;
-        const name = usernameInput.value.trim().substring(0, 15) || "Hacker-Anon";
-        userData.username = name;
-        await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile'), { username: name });
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), { username: name });
-    });
+    async function saveScore(s) {
+        if (!currentUser || s <= 0) return;
+        const name = document.getElementById('username').value.trim() || 'OPERATOR';
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', currentUser.uid);
+        try {
+            const existing = await getDoc(ref);
+            if (!existing.exists() || existing.data().score < s) {
+                await setDoc(ref, { name, score: s, uid: currentUser.uid, ts: Date.now() });
+            }
+        } catch(e) { console.warn("Save Error"); }
+    }
 
-    // --- LOGIKA PERMAINAN (JS MURNI) ---
+    // --- GAME ENGINE ---
     const canvas = document.getElementById('tetris');
-    const context = canvas.getContext('2d');
-    const scoreElement = document.getElementById('score');
-    const homePage = document.getElementById('home-page');
-    const gameUI = document.getElementById('game-ui');
-    const gameoverOverlay = document.getElementById('gameover-overlay');
-
-    const COLS = 12;
-    const ROWS = 20;
-    const BLOCK_SIZE = 20;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level-val');
     
-    canvas.width = COLS * BLOCK_SIZE;
-    canvas.height = ROWS * BLOCK_SIZE;
-    context.scale(BLOCK_SIZE, BLOCK_SIZE);
+    const COLS = 10, ROWS = 20, SCALE = 30;
+    canvas.width = COLS * SCALE;
+    canvas.height = ROWS * SCALE;
+    ctx.scale(SCALE, SCALE);
 
     const SHAPES = [
         [],
@@ -368,99 +359,190 @@
         [[0,0,7],[7,7,7],[0,0,0]]  // J
     ];
 
-    const COLORS = [null, '#00fff2', '#ff00de', '#facc15', '#ff2200', '#00ff66', '#0055FF', '#BD00FF'];
+    // Ultra Vivid Cyberpunk Palette
+    const COLORS = [
+        null,
+        '#00fff2', // Cyan
+        '#ff00de', // Magenta
+        '#facc15', // Gold
+        '#ff2200', // Red
+        '#00ff66', // Green
+        '#7000ff', // Purple
+        '#ffffff'  // White
+    ];
 
     let arena = Array.from({length: ROWS}, () => new Array(COLS).fill(0));
-    let player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
-    let dropCounter = 0;
-    let dropInterval = 1000;
-    let lastTime = 0;
-    let isPaused = true;
-    let currentMode = 'classic';
-    let animReq = null;
+    let player = { pos: {x: 0, y: 0}, matrix: null, score: 0, level: 1 };
+    let isPaused = true, lastTime = 0, dropCounter = 0, dropInterval = 1000, currentMode = 'classic';
 
-    window.setMode = (m) => {
+    window.setMode = (m, id) => {
         currentMode = m;
-        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('mode-active'));
-        document.getElementById(`mode-${m}`).classList.add('mode-active');
+        document.querySelectorAll('.mode-chip').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     };
 
     window.startGame = () => {
-        homePage.classList.add('hidden');
-        gameoverOverlay.classList.add('hidden');
-        gameUI.classList.remove('hidden');
-        arena.forEach(row => row.fill(0));
-        player.score = 0;
+        const n = document.getElementById('username').value.trim() || 'OPERATOR';
+        document.getElementById('player-alias').innerText = n.toUpperCase();
+        document.getElementById('home-page').classList.add('hidden');
+        document.getElementById('game-ui').style.display = 'flex';
+        document.getElementById('gameover-overlay').style.display = 'none';
+        
+        arena.forEach(r => r.fill(0));
+        player.score = 0; player.level = 1;
+        scoreEl.innerText = '0'; levelEl.innerText = '1';
+        
+        updateInterval();
         playerReset();
         isPaused = false;
         lastTime = performance.now();
-        update();
+        requestAnimationFrame(update);
     };
+
+    function updateInterval() {
+        if (currentMode === 'insane') dropInterval = 140;
+        else if (currentMode === 'speed') dropInterval = 400;
+        else dropInterval = 1000;
+    }
 
     window.quitToHome = () => {
         isPaused = true;
-        gameUI.classList.add('hidden');
-        homePage.classList.remove('hidden');
-        homePage.style.opacity = '1';
-        homePage.style.visibility = 'visible';
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('home-page').classList.remove('hidden');
     };
 
     function playerReset() {
         const id = (Math.random() * (SHAPES.length - 1) | 0) + 1;
-        player.matrix = SHAPES[id];
+        player.matrix = SHAPES[id].map(r => [...r]);
         player.pos.y = 0;
         player.pos.x = (COLS / 2 | 0) - (player.matrix[0].length / 2 | 0);
-        if (collide(arena, player)) gameOver();
+        if (collide(arena, player)) {
+            gameOver();
+        }
     }
 
-    function collide(arena, player) {
-        const [m, o] = [player.matrix, player.pos];
+    function gameOver() {
+        isPaused = true;
+        document.getElementById('final-score').innerText = `SCORE: ${player.score}`;
+        document.getElementById('gameover-overlay').style.display = 'flex';
+        saveScore(player.score);
+    }
+
+    function collide(a, p) {
+        const [m, o] = [p.matrix, p.pos];
         for (let y = 0; y < m.length; ++y) {
             for (let x = 0; x < m[y].length; ++x) {
-                if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
+                if (m[y][x] !== 0 && (a[y + o.y] && a[y + o.y][x + o.x]) !== 0) return true;
             }
         }
         return false;
     }
 
-    function merge(arena, player) {
-        player.matrix.forEach((row, y) => {
-            row.forEach((val, x) => {
-                if (val !== 0) arena[y + player.pos.y][x + player.pos.x] = val;
-            });
-        });
+    function merge(a, p) {
+        p.matrix.forEach((r, y) => r.forEach((v, x) => {
+            if (v !== 0) a[y + p.pos.y][x + p.pos.x] = v;
+        }));
+        // Visual shake effect
+        canvas.style.transform = 'translateY(5px)';
+        setTimeout(() => canvas.style.transform = 'translateY(0)', 50);
     }
 
     function arenaSweep() {
-        let rowCount = 1;
-        outer: for (let y = arena.length - 1; y > 0; --y) {
-            for (let x = 0; x < arena[y].length; ++x) {
-                if (arena[y][x] === 0) continue outer;
-            }
+        let count = 0;
+        outer: for (let y = arena.length - 1; y >= 0; --y) {
+            for (let x = 0; x < arena[y].length; ++x) { if (arena[y][x] === 0) continue outer; }
             const row = arena.splice(y, 1)[0].fill(0);
             arena.unshift(row);
-            ++y;
-            player.score += rowCount * 100;
-            rowCount *= 2;
+            ++y; count++;
+        }
+        if (count > 0) {
+            player.score += [0, 10, 40, 100, 300][count] * player.level;
+            scoreEl.innerText = player.score;
+            const nextLvl = Math.floor(player.score / 400) + 1;
+            if (nextLvl > player.level) {
+                player.level = nextLvl;
+                levelEl.innerText = player.level;
+                if (currentMode === 'classic') dropInterval = Math.max(100, 1000 - (player.level * 100));
+            }
         }
     }
 
-    function draw() {
-        context.fillStyle = '#05050a';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        drawMatrix(arena, {x: 0, y: 0});
-        drawMatrix(player.matrix, player.pos);
+    function getGhostPos() {
+        let gy = player.pos.y;
+        while (!collide(arena, { pos: { x: player.pos.x, y: gy + 1 }, matrix: player.matrix })) gy++;
+        return gy;
     }
 
-    function drawMatrix(matrix, offset) {
-        matrix.forEach((row, y) => {
-            row.forEach((val, x) => {
-                if (val !== 0) {
-                    context.fillStyle = COLORS[val];
-                    context.fillRect(x + offset.x, y + offset.y, 0.9, 0.9);
-                }
-            });
-        });
+    function draw() {
+        // High-end rendering
+        ctx.fillStyle = '#05050a';
+        ctx.fillRect(0, 0, COLS, ROWS);
+        
+        // Draw Scanning Lines
+        ctx.strokeStyle = 'rgba(0, 255, 242, 0.03)';
+        ctx.lineWidth = 0.02;
+        for(let i=0; i<ROWS; i++) {
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(COLS, i); ctx.stroke();
+        }
+
+        // Draw Arena
+        const alphaArena = currentMode === 'hidden' ? 0.05 : 1;
+        arena.forEach((r, y) => r.forEach((v, x) => {
+            if(v !== 0) {
+                ctx.globalAlpha = alphaArena;
+                drawBlock(x, y, COLORS[v]);
+            }
+        }));
+
+        // Draw Ghost (The Future Guide)
+        if (!isPaused && player.matrix) {
+            const gy = getGhostPos();
+            ctx.globalAlpha = 0.12;
+            player.matrix.forEach((r, y) => r.forEach((v, x) => {
+                if (v !== 0) drawBlock(x + player.pos.x, y + gy, COLORS[v], true);
+            }));
+        }
+
+        // Draw Player
+        ctx.globalAlpha = 1;
+        if (player.matrix) {
+            player.matrix.forEach((r, y) => r.forEach((v, x) => {
+                if (v !== 0) drawBlock(x + player.pos.x, y + player.pos.y, COLORS[v]);
+            }));
+        }
+    }
+
+    function drawBlock(x, y, color, isGhost = false) {
+        ctx.shadowBlur = isGhost ? 0 : 15;
+        ctx.shadowColor = color;
+        ctx.fillStyle = color;
+        
+        // Rounded corners for blocks
+        const r = 0.15;
+        ctx.beginPath();
+        ctx.roundRect(x + 0.05, y + 0.05, 0.9, 0.9, r);
+        ctx.fill();
+        
+        if (!isGhost) {
+            // Interior Glow
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(x + 0.15, y + 0.15, 0.2, 0.2);
+            // Border Highlight
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 0.05;
+            ctx.strokeRect(x + 0.05, y + 0.05, 0.9, 0.9);
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    function update(time = 0) {
+        if (isPaused) return;
+        const dt = time - lastTime;
+        lastTime = time;
+        dropCounter += dt;
+        if (dropCounter > dropInterval) playerDrop();
+        draw();
+        requestAnimationFrame(update);
     }
 
     function playerDrop() {
@@ -470,75 +552,77 @@
             merge(arena, player);
             playerReset();
             arenaSweep();
-            scoreElement.innerText = player.score;
         }
         dropCounter = 0;
     }
 
-    function playerMove(dir) {
-        player.pos.x += dir;
-        if (collide(arena, player)) player.pos.x -= dir;
+    function playerMove(d) {
+        player.pos.x += d;
+        if (collide(arena, player)) player.pos.x -= d;
     }
 
-    function playerRotate(dir) {
+    function playerRotate(d) {
         const pos = player.pos.x;
         let offset = 1;
-        const m = player.matrix;
-        for (let y = 0; y < m.length; ++y) {
-            for (let x = 0; x < y; ++x) [m[x][y], m[y][x]] = [m[y][x], m[x][y]];
-        }
-        dir > 0 ? m.forEach(row => row.reverse()) : m.reverse();
+        rotateM(player.matrix, d);
         while (collide(arena, player)) {
             player.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
-            if (offset > m[0].length) {
+            if (Math.abs(offset) > player.matrix[0].length) {
+                rotateM(player.matrix, -d);
                 player.pos.x = pos;
                 return;
             }
         }
     }
 
-    function gameOver() {
-        isPaused = true;
-        document.getElementById('final-score').innerText = player.score;
-        gameoverOverlay.classList.remove('hidden');
-        if (player.score > userData.highscore) {
-            saveScore(player.score);
+    function rotateM(m, d) {
+        for (let y = 0; y < m.length; ++y) {
+            for (let x = 0; x < y; ++x) { [m[x][y], m[y][x]] = [m[y][x], m[x][y]]; }
         }
+        if (d > 0) m.forEach(r => r.reverse());
+        else m.reverse();
     }
 
-    async function saveScore(s) {
-        if (!user) return;
-        await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile'), { highscore: s });
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), { highscore: s, updatedAt: Date.now() });
+    function hardDrop() {
+        const gy = getGhostPos();
+        player.pos.y = gy;
+        merge(arena, player);
+        playerReset();
+        arenaSweep();
     }
 
-    function update(time = 0) {
-        if (!isPaused) {
-            const dt = time - lastTime;
-            lastTime = time;
-            dropCounter += dt;
-            if (dropCounter > dropInterval) playerDrop();
-            draw();
-            animReq = requestAnimationFrame(update);
+    // High performance input handling
+    const bindBtn = (id, fn) => {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            if(!isPaused) { fn(); draw(); }
+        }, {passive: false});
+        el.addEventListener('mousedown', (e) => { 
+            if(!isPaused) { fn(); draw(); }
+        });
+    };
+
+    bindBtn('ctrl-left', () => playerMove(-1));
+    bindBtn('ctrl-right', () => playerMove(1));
+    bindBtn('ctrl-down', () => playerDrop());
+    bindBtn('ctrl-rot-cw', () => playerRotate(1));
+    bindBtn('ctrl-rot-ccw', () => playerRotate(-1));
+    bindBtn('ctrl-hard-drop', () => hardDrop());
+
+    document.addEventListener('keydown', e => {
+        if (isPaused) return;
+        switch(e.keyCode) {
+            case 37: playerMove(-1); break;
+            case 39: playerMove(1); break;
+            case 40: playerDrop(); break;
+            case 38: playerRotate(1); break;
+            case 32: hardDrop(); break;
         }
-    }
-
-    // Input Control
-    document.getElementById('btn-left').onclick = () => playerMove(-1);
-    document.getElementById('btn-right').onclick = () => playerMove(1);
-    document.getElementById('btn-down').onclick = () => playerDrop();
-    document.getElementById('btn-rotate-cw').onclick = () => playerRotate(1);
-    document.getElementById('btn-rotate-ccw').onclick = () => playerRotate(-1);
-    document.getElementById('btn-up').onclick = () => { while(!collide(arena, player)) player.pos.y++; player.pos.y--; playerDrop(); };
-
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            document.getElementById('loading-screen').classList.add('hidden-transition');
-            homePage.classList.remove('invisible');
-            homePage.style.opacity = '1';
-        }, 3000);
+        draw();
     });
+
 </script>
 </body>
 </html>
