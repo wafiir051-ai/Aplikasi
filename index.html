@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neo Tetris Cyberpunk - Responsive Edition</title>
+    <title>Neo Tetris Cyberpunk - Cloud Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00fff2;
             --secondary: #ff00de;
             --warning: #facc15;
-            --bg-dark: #050510;
+            --danger: #ff2200;
+            --bg-dark: #05050a;
         }
 
         body {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Rajdhani', sans-serif;
             margin: 0;
             padding: 0;
             overflow: hidden; 
@@ -29,213 +30,426 @@
             flex-direction: column;
         }
 
-        .bg-cyberpunk {
+        /* Layar Pemuatan */
+        #loading-screen {
             position: fixed;
-            top: 0;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        .loading-bar-container {
+            width: 250px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            position: absolute;
             left: 0;
-            width: 100%;
+            top: 0;
             height: 100%;
-            background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000000 100%);
-            z-index: -2;
+            width: 0%;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: load-progress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 200%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 0, 222, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            transform: perspective(500px) rotateX(60deg);
-            transform-origin: top;
-            animation: gridMove 20s linear infinite;
-            z-index: -1;
+        @keyframes load-progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
         }
 
-        @keyframes gridMove {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(-50px); }
-        }
+        /* Latar Belakang */
+        #bg-canvas { position: fixed; inset: 0; z-index: -2; }
+        .scanlines { position: fixed; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 4px; z-index: -1; pointer-events: none; opacity: 0.3; }
+        .cyber-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 222, 0.05) 1px, transparent 1px); background-size: 50px 50px; z-index: -1; animation: pulse-grid 8s ease-in-out infinite; }
+
+        @keyframes pulse-grid { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
 
         .layout-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) 10px;
+            padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
             max-height: 100dvh;
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
-        }
-
-        .game-wrapper {
             position: relative;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 0; /* Penting untuk shrinkability */
-            padding: 10px 0;
         }
 
-        canvas {
+        canvas#tetris {
             image-rendering: pixelated; 
-            box-shadow: 0 0 30px rgba(0, 255, 242, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 40px rgba(0, 255, 242, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 242, 0.3);
+            background: rgba(2, 2, 5, 0.95);
             max-height: 100%;
             max-width: 100%;
-            height: auto;
-            width: auto;
-            border-radius: 8px;
+            border-radius: 4px;
             aspect-ratio: 12 / 20;
         }
 
-        /* Responsive Controls Grid */
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            width: 100%;
-            padding: 10px 0;
-            height: clamp(140px, 20vh, 200px); /* Ukuran dinamis berdasarkan layar */
-            shrink: 0;
-        }
-
         .btn-control {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(0, 255, 242, 0.15);
             color: var(--primary);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s;
             user-select: none;
-            width: 100%;
-            height: 100%;
+            backdrop-filter: blur(5px);
         }
 
-        .btn-control:active {
-            background: rgba(0, 255, 242, 0.2);
-            transform: scale(0.9);
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 255, 242, 0.4);
-        }
-
-        .btn-rotate-ccw { color: var(--warning); }
-        .btn-rotate-cw { color: var(--secondary); }
-
-        .btn-label {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            margin-top: 4px;
-            opacity: 0.7;
-            font-weight: 700;
-        }
-
-        /* Landscape Mode Fix */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .layout-container {
-                max-width: 100%;
-                flex-direction: row;
-                gap: 20px;
-            }
-            .header-area { display: none; }
-            .controls-grid {
-                width: 280px;
-                height: 90vh;
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .btn-rotate-ccw { grid-column: 1; }
-            .btn-rotate-cw { grid-column: 3; }
-        }
+        .btn-control:active { background: var(--primary); color: black; box-shadow: 0 0 15px var(--primary); transform: scale(0.95); }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(10, 10, 25, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
+
+        .menu-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            background: rgba(0, 255, 242, 0.03);
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+        }
+
+        .menu-btn:hover { background: rgba(0, 255, 242, 0.1); border-color: var(--primary); }
+        .mode-active { border-color: var(--secondary) !important; color: var(--secondary) !important; background: rgba(255, 0, 222, 0.05) !important; }
+
+        .glitch-text { font-family: 'Orbitron', sans-serif; position: relative; text-shadow: 2px 0 var(--danger), -2px 0 var(--primary); }
+        .hidden-transition { opacity: 0 !important; visibility: hidden !important; }
+
+        /* Detail Papan Peringkat */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            transition: background 0.3s;
+        }
+        .leaderboard-item:nth-child(1) { color: var(--warning); border-left: 3px solid var(--warning); background: rgba(250, 204, 21, 0.05); }
+        .leaderboard-item:nth-child(2) { color: #e5e7eb; border-left: 3px solid #e5e7eb; }
+        .leaderboard-item:nth-child(3) { color: #cd7f32; border-left: 3px solid #cd7f32; }
     </style>
 </head>
 <body>
 
-    <div class="bg-cyberpunk"></div>
-    <div class="grid-overlay"></div>
-
-    <div class="layout-container">
-        <!-- Header Skor -->
-        <div class="header-area flex justify-between items-center py-2 shrink-0">
-            <h1 class="text-lg font-bold tracking-tighter text-cyan-400">NEO-TETRIS</h1>
-            <div class="glass-panel px-4 py-1 rounded-lg">
-                <span class="text-[8px] text-gray-400 block uppercase">Neural Link Score</span>
-                <span id="score" class="text-xl font-bold leading-none text-white">0</span>
-            </div>
+    <!-- LAYAR PEMUATAN -->
+    <div id="loading-screen">
+        <div class="mb-4 text-center">
+            <h2 class="text-2xl font-bold glitch-text italic mb-1 tracking-widest">NEO LINK</h2>
+            <p class="text-[10px] text-cyan-400 uppercase tracking-[0.4em] animate-pulse">Menghubungkan ke Cloud...</p>
         </div>
-
-        <!-- Arena Permainan -->
-        <div class="game-wrapper">
-            <canvas id="tetris"></canvas>
-            
-            <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md z-30 transition-all rounded-lg">
-                <h2 id="overlay-title" class="text-3xl font-bold text-white mb-6 tracking-widest italic">READY?</h2>
-                <p id="final-score" class="text-lg text-pink-500 mb-6 hidden font-bold">FINAL: 0</p>
-                <button id="start-btn" class="px-8 py-3 bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400 rounded-full font-bold hover:bg-cyan-500 hover:text-white transition-all">
-                    START
-                </button>
-            </div>
+        <div class="loading-bar-container">
+            <div class="loading-bar-fill"></div>
         </div>
+        <p class="mt-4 text-[9px] text-gray-500 uppercase tracking-widest font-mono" id="loading-text">Menyinkronkan Data Saraf...</p>
+    </div>
 
-        <!-- Kontrol Panel Responsif -->
-        <div class="controls-grid">
-            <!-- Rotasi Manual Kiri -->
-            <button class="btn-control btn-rotate-ccw" id="btn-rotate-ccw">
-                <i class="fas fa-undo"></i>
-                <span class="btn-label">Rotate L</span>
-            </button>
+    <canvas id="bg-canvas"></canvas>
+    <div class="cyber-grid"></div>
+    <div class="scanlines"></div>
 
-            <!-- Navigation Pad -->
-            <div class="col-span-3 grid grid-cols-3 gap-2">
-                <div></div>
-                <button class="btn-control" id="btn-up">
-                    <i class="fas fa-bolt"></i>
-                    <span class="btn-label">Hard</span>
-                </button>
-                <div></div>
+    <!-- HALAMAN UTAMA -->
+    <div id="home-page" class="fixed inset-0 z-50 flex items-center justify-center p-6 opacity-0 invisible transition-all duration-700">
+        <div class="glass-panel w-full max-w-4xl p-8 rounded-lg flex flex-col md:flex-row gap-8">
+            <!-- Kiri: Menu & Mulai -->
+            <div class="flex-1 text-center">
+                <div class="mb-2">
+                    <span class="text-[10px] text-pink-500 tracking-[0.5em] font-bold uppercase">Sistem Override</span>
+                </div>
+                <h1 class="text-3xl font-bold glitch-text mb-4 italic">NEO TETRIS</h1>
                 
-                <button class="btn-control" id="btn-left">
-                    <i class="fas fa-chevron-left"></i>
-                    <span class="btn-label">Left</span>
-                </button>
-                <button class="btn-control" id="btn-down">
-                    <i class="fas fa-chevron-down"></i>
-                    <span class="btn-label">Drop</span>
-                </button>
-                <button class="btn-control" id="btn-right">
-                    <i class="fas fa-chevron-right"></i>
-                    <span class="btn-label">Right</span>
+                <div class="mb-4 text-left">
+                    <label class="text-[9px] uppercase text-cyan-500 font-bold mb-1 block">Alias Hacker</label>
+                    <input type="text" id="username-input" placeholder="Masukkan Nama..." maxlength="15" class="w-full bg-black/40 border border-cyan-500/30 p-2 rounded text-sm text-cyan-100 focus:outline-none focus:border-cyan-500 transition-all font-mono">
+                    <p id="user-id-display" class="text-[8px] text-gray-600 mt-1 uppercase truncate"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="setMode('classic')" id="mode-classic" class="menu-btn mode-active">Classic</button>
+                    <button onclick="setMode('insane')" id="mode-insane" class="menu-btn">Insane</button>
+                    <button onclick="setMode('speed')" id="mode-speed" class="menu-btn">Speed</button>
+                    <button onclick="setMode('invisible')" id="mode-invisible" class="menu-btn">Hidden</button>
+                </div>
+                
+                <button onclick="startGame()" class="w-full py-4 bg-cyan-500 text-black font-bold rounded uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(0,255,242,0.3)] hover:brightness-110 active:scale-95 transition-all font-['Orbitron'] text-xs">
+                    MULA LINK
                 </button>
             </div>
 
-            <!-- Rotasi Manual Kanan -->
-            <button class="btn-control btn-rotate-cw" id="btn-rotate-cw">
-                <i class="fas fa-redo"></i>
-                <span class="btn-label">Rotate R</span>
-            </button>
+            <!-- Kanan: Papan Peringkat (Diurutkan) -->
+            <div class="flex-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8 overflow-hidden flex flex-col min-h-[300px]">
+                <h3 class="text-xs font-bold text-pink-500 uppercase tracking-widest mb-4 flex items-center justify-between">
+                    <span><i class="fas fa-trophy mr-2"></i> Papan Peringkat Global</span>
+                    <span class="text-[8px] text-gray-500">Auto-Sort: High Score</span>
+                </h3>
+                <div id="leaderboard-list" class="flex-1 overflow-y-auto max-h-[400px] scrollbar-hide space-y-1">
+                    <div class="text-[10px] text-gray-500 italic py-4 text-center">Memuat kedudukan pemain...</div>
+                </div>
+            </div>
         </div>
     </div>
 
-<script>
+    <!-- UI PERMAINAN -->
+    <div id="game-ui" class="layout-container hidden">
+        <div class="flex justify-between items-end py-4 gap-4">
+            <div class="glass-panel px-4 py-2 rounded-md border-l-4 border-cyan-500">
+                <span class="text-[9px] text-cyan-500 block uppercase font-bold tracking-widest">Protokol</span>
+                <span id="display-mode" class="text-xs font-bold text-white uppercase">Classic</span>
+            </div>
+            <div class="flex-1 text-right">
+                <span class="text-[9px] text-pink-500 block uppercase font-bold tracking-widest">Aliran Data</span>
+                <span id="score" class="text-3xl font-bold text-white tracking-tighter tabular-nums">0</span>
+            </div>
+            <button onclick="quitToHome()" class="glass-panel w-10 h-10 flex items-center justify-center rounded-md text-red-500 hover:bg-red-500/10 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="game-wrapper flex-1 relative flex justify-center items-center overflow-hidden">
+            <div id="combo-notif" class="absolute pointer-events-none opacity-0 transition-all font-['Orbitron'] font-bold text-3xl italic text-pink-400 z-20">COMBO</div>
+            <canvas id="tetris"></canvas>
+            
+            <div id="gameover-overlay" class="absolute inset-0 hidden flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl z-30 p-8 rounded border border-red-500/20">
+                <div class="text-red-500 text-5xl mb-4"><i class="fas fa-radiation"></i></div>
+                <h2 class="text-2xl font-bold text-red-500 mb-1 uppercase tracking-[0.3em] font-['Orbitron']">RALAT LINK</h2>
+                <p id="saving-status" class="text-gray-500 text-[10px] mb-6 uppercase tracking-widest">Skor disimpan...</p>
+                <p id="final-score" class="text-3xl text-white mb-10 font-bold tabular-nums">0</p>
+                <button onclick="startGame()" class="menu-btn w-full max-w-xs !border-cyan-500 !text-cyan-500">MULAKAN SEMULA</button>
+                <button onclick="quitToHome()" class="text-gray-500 mt-6 uppercase text-[10px] tracking-widest hover:text-white transition-colors">Abai Sistem</button>
+            </div>
+        </div>
+
+        <!-- Kontrol Sentuh -->
+        <div class="grid grid-cols-5 gap-3 h-32 py-4 shrink-0 font-['Orbitron']">
+            <button class="btn-control text-yellow-400" id="btn-rotate-ccw"><i class="fas fa-undo"></i></button>
+            <div class="col-span-3 grid grid-cols-3 gap-2">
+                <div></div>
+                <button class="btn-control" id="btn-up"><i class="fas fa-angle-double-down"></i></button>
+                <div></div>
+                <button class="btn-control" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn-control" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+                <button class="btn-control" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <button class="btn-control text-pink-500" id="btn-rotate-cw"><i class="fas fa-redo"></i></button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- KONFIGURASI FIREBASE ---
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'tetris-cyber-app';
+
+    // --- DATA GLOBAL ---
+    let user = null;
+    let userData = { username: "Anon-Hacker", highscore: 0 };
+    const usernameInput = document.getElementById('username-input');
+    const leaderboardList = document.getElementById('leaderboard-list');
+
+    // --- AUTENTIKASI ---
+    const initAuth = async () => {
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (e) {
+            console.error("Auth Error", e);
+        }
+    };
+
+    onAuthStateChanged(auth, async (u) => {
+        if (u) {
+            user = u;
+            document.getElementById('user-id-display').innerText = `NODE-ID: ${user.uid}`;
+            
+            // Mengambil Profil Pengguna (Data Privat)
+            const userDoc = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
+            const snap = await getDoc(userDoc);
+            
+            if (snap.exists()) {
+                userData = snap.data();
+                usernameInput.value = userData.username;
+            } else {
+                // Inisialisasi profil baru jika belum ada
+                await setDoc(userDoc, { username: userData.username, highscore: 0, uid: user.uid });
+                // Pastikan juga muncul di leaderboard publik meskipun skor 0
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), {
+                    username: userData.username,
+                    highscore: 0,
+                    uid: user.uid,
+                    updatedAt: Date.now()
+                });
+            }
+            
+            // PERBAIKAN: Sinkronisasi Leaderboard Global secara Real-time
+            // Kita mendengarkan seluruh koleksi 'leaderboard' untuk menampilkan SEMUA akun
+            const leaderboardQuery = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            onSnapshot(leaderboardQuery, (snapshot) => {
+                const allPlayers = [];
+                snapshot.forEach(doc => {
+                    allPlayers.push(doc.data());
+                });
+                renderLeaderboard(allPlayers);
+            }, (err) => {
+                console.error("Leaderboard Sync Error:", err);
+            });
+        }
+    });
+
+    initAuth();
+
+    // Simpan perubahan username ke Profil Privat dan Leaderboard Publik
+    usernameInput.addEventListener('change', async () => {
+        if (!user) return;
+        const newName = usernameInput.value.trim().substring(0, 15) || "Anon-Hacker";
+        userData.username = newName;
+        
+        // Update di settings (privat)
+        await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile'), { username: newName });
+        
+        // Update di leaderboard (publik)
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), { 
+            username: newName, 
+            highscore: userData.highscore,
+            uid: user.uid,
+            updatedAt: Date.now()
+        }, { merge: true });
+    });
+
+    // FUNGSI PENGURUTAN LEADERBOARD
+    function renderLeaderboard(players) {
+        // Urutkan skor dari yang TERBESAR ke TERKECIL
+        players.sort((a, b) => (b.highscore || 0) - (a.highscore || 0));
+        
+        if (players.length === 0) {
+            leaderboardList.innerHTML = `<div class="text-[10px] text-gray-600 text-center py-4">Belum ada data sistem...</div>`;
+            return;
+        }
+
+        leaderboardList.innerHTML = players.map((p, i) => `
+            <div class="leaderboard-item ${p.uid === user?.uid ? 'bg-cyan-500/10 !border-l-cyan-500' : ''}">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="font-mono text-[10px] w-5 shrink-0 opacity-50">${i+1}.</span>
+                    <span class="font-bold truncate max-w-[120px] ${p.uid === user?.uid ? 'text-cyan-400' : 'text-white'}">
+                        ${p.username || 'Unknown'}
+                        ${p.uid === user?.uid ? ' <small class="text-[8px] opacity-50">(KAU)</small>' : ''}
+                    </span>
+                </div>
+                <span class="font-mono text-cyan-400 font-bold ml-2">${(p.highscore || 0).toLocaleString()}</span>
+            </div>
+        `).join('');
+    }
+
+    async function saveScore(score) {
+        if (!user) return;
+        const status = document.getElementById('saving-status');
+        status.innerText = "Mengesahkan Data...";
+        
+        // Update hanya jika skor baru lebih tinggi
+        if (score > (userData.highscore || 0)) {
+            userData.highscore = score;
+            const timestamp = Date.now();
+
+            // Update privat
+            await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile'), { 
+                highscore: score,
+                lastScoreAt: timestamp
+            });
+            
+            // Update publik (untuk dilihat semua orang)
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', user.uid), {
+                username: userData.username,
+                highscore: score,
+                uid: user.uid,
+                updatedAt: timestamp
+            }, { merge: true });
+            
+            status.innerText = "REKOD PERIBADI BARU!";
+        } else {
+            status.innerText = "Data Disinkronkan";
+        }
+    }
+
+    // --- MESIN LATAR BELAKANG ---
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let particles = [];
+
+    function initBackground() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        particles = [];
+        for(let i=0; i<60; i++) {
+            particles.push({
+                x: Math.random() * bgCanvas.width,
+                y: Math.random() * bgCanvas.height,
+                size: Math.random() * 2,
+                speed: Math.random() * 0.5 + 0.1,
+                opacity: Math.random()
+            });
+        }
+    }
+
+    function animateBackground() {
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        bgCtx.fillStyle = '#05050a';
+        bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        particles.forEach(p => {
+            p.y -= p.speed;
+            if(p.y < 0) p.y = bgCanvas.height;
+            bgCtx.fillStyle = `rgba(0, 255, 242, ${p.opacity})`;
+            bgCtx.fillRect(p.x, p.y, p.size, p.size);
+        });
+        requestAnimationFrame(animateBackground);
+    }
+    
+    initBackground();
+    animateBackground();
+    window.addEventListener('resize', initBackground);
+
+    // --- MESIN PERMAINAN TETRIS ---
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
-    const overlay = document.getElementById('overlay');
-    const startBtn = document.getElementById('start-btn');
+    const comboNotif = document.getElementById('combo-notif');
+    const homePage = document.getElementById('home-page');
+    const gameUI = document.getElementById('game-ui');
+    const gameoverOverlay = document.getElementById('gameover-overlay');
+    const displayMode = document.getElementById('display-mode');
 
     const COLS = 12;
     const ROWS = 20;
@@ -245,62 +459,54 @@
     canvas.height = ROWS * BLOCK_SIZE;
     context.scale(BLOCK_SIZE, BLOCK_SIZE);
 
-    const COLORS = [null, '#FF0055', '#00FFDD', '#FFDD00', '#BD00FF', '#00FF66', '#FF5500', '#0055FF'];
-    const SHAPES = [
-        [],
-        [[0, 1, 0],[1, 1, 1],[0, 0, 0]],
-        [[2, 2],[2, 2]],
-        [[0, 3, 0],[0, 3, 0],[0, 3, 3]],
-        [[0, 4, 0],[0, 4, 0],[4, 4, 0]],
-        [[0, 5, 0, 0],[0, 5, 0, 0],[0, 5, 0, 0],[0, 5, 0, 0]],
-        [[0, 6, 6],[6, 6, 0],[0, 0, 0]],
-        [[7, 7, 0],[0, 7, 7],[0, 0, 0]]
-    ];
+    const COLORS = [null, '#00fff2', '#ff00de', '#facc15', '#ff2200', '#00ff66', '#0055FF', '#BD00FF', '#FFFFFF', '#FF8800'];
+    const SHAPES = [[], [[0,1,0],[1,1,1],[0,0,0]], [[2,2],[2,2]], [[0,3,0],[0,3,0],[0,3,3]], [[0,4,0],[0,4,0],[4,4,0]], [[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]], [[0,6,6],[6,6,0],[0,0,0]], [[7,7,0],[0,7,7],[0,0,0]], [[8]], [[0,9,0],[9,9,9],[0,9,0]]];
 
     let arena = createMatrix(COLS, ROWS);
-    let player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
+    let player = { pos: {x: 0, y: 0}, matrix: null, score: 0, combo: 0 };
     let dropCounter = 0;
     let dropInterval = 1000;
     let lastTime = 0;
     let isPaused = true;
-    let particles = [];
+    let currentMode = 'classic';
+    let animationId = null;
 
-    function createMatrix(w, h) {
-        const matrix = [];
-        while (h--) matrix.push(new Array(w).fill(0));
-        return matrix;
-    }
+    function createMatrix(w, h) { return Array.from({length: h}, () => new Array(w).fill(0)); }
 
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x; this.y = y; this.color = color;
-            this.vx = (Math.random() - 0.5) * 0.5;
-            this.vy = (Math.random() - 0.5) * 0.5;
-            this.life = 1.0;
-        }
-        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.05; }
-        draw(ctx) {
-            ctx.globalAlpha = Math.max(0, this.life);
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.x, this.y, 0.2, 0.2);
-        }
-    }
+    window.setMode = (mode) => {
+        currentMode = mode;
+        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('mode-active'));
+        document.getElementById(`mode-${mode}`).classList.add('mode-active');
+    };
+
+    window.startGame = () => {
+        homePage.classList.add('hidden');
+        gameoverOverlay.classList.add('hidden');
+        gameUI.classList.remove('hidden');
+        displayMode.innerText = currentMode;
+        arena.forEach(row => row.fill(0));
+        player.score = 0; player.combo = 0;
+        dropInterval = currentMode === 'speed' ? 200 : 800;
+        updateUI();
+        playerReset();
+        isPaused = false;
+        lastTime = performance.now();
+        if(animationId) cancelAnimationFrame(animationId);
+        update();
+    };
+
+    window.quitToHome = () => {
+        isPaused = true;
+        gameUI.classList.add('hidden');
+        homePage.classList.remove('hidden');
+        homePage.style.opacity = '1'; homePage.style.visibility = 'visible';
+    };
 
     function draw() {
-        context.fillStyle = '#050510';
+        context.fillStyle = 'rgba(2, 2, 5, 1)';
         context.fillRect(0, 0, canvas.width, canvas.height);
-        
-        drawMatrix(arena, {x:0, y:0});
-        if(!isPaused) {
-            drawGhost();
-            drawMatrix(player.matrix, player.pos);
-        }
-
-        particles.forEach((p, i) => {
-            p.update();
-            p.draw(context);
-            if(p.life <= 0) particles.splice(i, 1);
-        });
+        if (currentMode !== 'invisible') drawMatrix(arena, {x:0, y:0});
+        if(!isPaused) { drawGhost(); drawMatrix(player.matrix, player.pos); }
     }
 
     function drawMatrix(matrix, offset) {
@@ -308,9 +514,9 @@
             row.forEach((value, x) => {
                 if (value !== 0) {
                     context.fillStyle = COLORS[value];
-                    context.fillRect(x + offset.x, y + offset.y, 1, 1);
-                    context.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                    context.fillRect(x + offset.x, y + offset.y, 1, 0.1);
+                    context.shadowBlur = 10; context.shadowColor = COLORS[value];
+                    context.fillRect(x + offset.x, y + offset.y, 0.9, 0.9);
+                    context.shadowBlur = 0;
                 }
             });
         });
@@ -323,7 +529,7 @@
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    context.strokeStyle = 'rgba(0, 255, 242, 0.2)';
+                    context.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                     context.lineWidth = 0.05;
                     context.strokeRect(x + ghostPos.x, y + ghostPos.y, 1, 1);
                 }
@@ -345,22 +551,16 @@
         for (let y = 0; y < matrix.length; ++y) {
             for (let x = 0; x < y; ++x) [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
         }
-        if (dir > 0) matrix.forEach(row => row.reverse());
-        else matrix.reverse();
+        dir > 0 ? matrix.forEach(row => row.reverse()) : matrix.reverse();
     }
 
     function playerReset() {
-        const typeId = Math.floor(Math.random() * (SHAPES.length - 1)) + 1;
+        const max = (currentMode === 'insane') ? SHAPES.length - 1 : 7;
+        const typeId = Math.floor(Math.random() * max) + 1;
         player.matrix = SHAPES[typeId];
         player.pos.y = 0;
-        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-        if (collide(arena, player)) {
-            isPaused = true;
-            overlay.classList.remove('hidden');
-            document.getElementById('overlay-title').innerText = "FATAL ERROR";
-            document.getElementById('final-score').innerText = `SCORE: ${player.score}`;
-            document.getElementById('final-score').classList.remove('hidden');
-        }
+        player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
+        if (collide(arena, player)) gameOver();
     }
 
     function playerDrop() {
@@ -370,7 +570,7 @@
             merge(arena, player);
             playerReset();
             arenaSweep();
-            updateScore();
+            updateUI();
         }
         dropCounter = 0;
     }
@@ -387,21 +587,12 @@
         while (collide(arena, player)) {
             player.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
-            if (offset > player.matrix.length) {
+            if (offset > player.matrix[0].length) {
                 rotate(player.matrix, -dir);
                 player.pos.x = pos;
                 return;
             }
         }
-    }
-
-    function playerHardDrop() {
-        while (!collide(arena, player)) player.pos.y++;
-        player.pos.y--;
-        merge(arena, player);
-        playerReset();
-        arenaSweep();
-        updateScore();
     }
 
     function merge(arena, player) {
@@ -415,23 +606,33 @@
     function arenaSweep() {
         let rowCount = 0;
         outer: for (let y = arena.length - 1; y > 0; --y) {
-            for (let x = 0; x < arena[y].length; ++x) {
-                if (arena[y][x] === 0) continue outer;
-            }
+            for (let x = 0; x < arena[y].length; ++x) { if (arena[y][x] === 0) continue outer; }
             const row = arena.splice(y, 1)[0].fill(0);
             arena.unshift(row);
-            ++y;
-            rowCount++;
-            for(let i=0; i<COLS; i++) particles.push(new Particle(i, y-1, '#00fff2'));
+            ++y; rowCount++;
         }
         if (rowCount > 0) {
-            player.score += rowCount * 100;
-            dropInterval = Math.max(100, 1000 - (player.score / 5));
-        }
+            player.combo++;
+            player.score += (rowCount * 100) * player.combo;
+            showCombo();
+        } else { player.combo = 0; }
     }
 
-    function updateScore() {
-        scoreElement.innerText = player.score;
+    function showCombo() {
+        if(player.combo < 2) return;
+        comboNotif.innerText = `X${player.combo} COMBO`;
+        comboNotif.style.opacity = "1";
+        comboNotif.style.transform = "scale(1.5) translateY(-50px)";
+        setTimeout(() => { comboNotif.style.opacity = "0"; comboNotif.style.transform = "scale(1) translateY(0)"; }, 600);
+    }
+
+    function updateUI() { scoreElement.innerText = player.score.toLocaleString(); }
+
+    function gameOver() {
+        isPaused = true;
+        document.getElementById('final-score').innerText = player.score.toLocaleString();
+        gameoverOverlay.classList.remove('hidden');
+        saveScore(player.score);
     }
 
     function update(time = 0) {
@@ -441,57 +642,42 @@
             dropCounter += deltaTime;
             if (dropCounter > dropInterval) playerDrop();
             draw();
-            requestAnimationFrame(update);
+            animationId = requestAnimationFrame(update);
         }
     }
 
-    function resetGame() {
-        arena.forEach(row => row.fill(0));
-        player.score = 0;
-        updateScore();
-        playerReset();
-        isPaused = false;
-        overlay.classList.add('hidden');
-        lastTime = performance.now();
-        update();
-    }
-
-    startBtn.addEventListener('click', resetGame);
-
-    // Optimized Multi-Touch Controls
-    function handleControl(id, action) {
+    // --- INPUT KONTROL ---
+    function handleBtn(id, fn) {
         const btn = document.getElementById(id);
-        const trigger = (e) => {
-            e.preventDefault();
-            if(!isPaused) {
-                if(window.navigator.vibrate) window.navigator.vibrate(15);
-                action();
-                draw();
-            }
-        };
-        btn.addEventListener('touchstart', trigger, {passive: false});
-        btn.addEventListener('mousedown', trigger);
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); fn(); if(navigator.vibrate) navigator.vibrate(10); });
+        btn.addEventListener('mousedown', (e) => { if(e.button === 0) fn(); });
     }
 
-    handleControl('btn-left', () => playerMove(-1));
-    handleControl('btn-right', () => playerMove(1));
-    handleControl('btn-down', () => playerDrop());
-    handleControl('btn-up', () => playerHardDrop());
-    handleControl('btn-rotate-cw', () => playerRotate(1));
-    handleControl('btn-rotate-ccw', () => playerRotate(-1));
+    handleBtn('btn-left', () => playerMove(-1));
+    handleBtn('btn-right', () => playerMove(1));
+    handleBtn('btn-down', () => playerDrop());
+    handleBtn('btn-up', () => { while(!collide(arena, player)) player.pos.y++; player.pos.y--; merge(arena, player); playerReset(); arenaSweep(); updateUI(); });
+    handleBtn('btn-rotate-cw', () => playerRotate(1));
+    handleBtn('btn-rotate-ccw', () => playerRotate(-1));
 
-    // Keyboard support
     document.addEventListener('keydown', e => {
         if(isPaused) return;
-        const key = e.key.toLowerCase();
-        if(key === 'a' || key === 'arrowleft') playerMove(-1);
-        if(key === 'd' || key === 'arrowright') playerMove(1);
-        if(key === 's' || key === 'arrowdown') playerDrop();
-        if(key === 'w' || key === 'arrowup') playerRotate(1);
-        if(key === 'q') playerRotate(-1);
-        if(key === 'e') playerRotate(1);
-        if(key === ' ') playerHardDrop();
-        draw();
+        if(e.key === 'ArrowLeft') playerMove(-1);
+        if(e.key === 'ArrowRight') playerMove(1);
+        if(e.key === 'ArrowDown') playerDrop();
+        if(e.key === 'ArrowUp') playerRotate(1);
+        if(e.key === ' ') { while(!collide(arena, player)) player.pos.y++; player.pos.y--; merge(arena, player); playerReset(); arenaSweep(); updateUI(); }
+    });
+
+    // --- LOGIKA PEMUATAN AWAL ---
+    window.addEventListener('load', () => {
+        const loadingScreen = document.getElementById('loading-screen');
+        const homePage = document.getElementById('home-page');
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden-transition');
+            homePage.style.opacity = '1';
+            homePage.style.visibility = 'visible';
+        }, 3200);
     });
 
     draw();
